@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>⚡ FAST WORD FIND · 50 levels</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(145deg, #ffe4f0 0%, #f0d6ff 35%, #d9e6ff 70%, #c8f0e6 100%);
+      padding: 16px;
+      margin: 0;
+      transition: background 0.8s ease;
+    }
+    .glass {
+      width: 100%;
+      max-width: 820px;
+      background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 56px;
+      padding: 28px 24px 34px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.06), 0 0 0 1px rgba(255,255,255,0.5);
+      border: 1px solid rgba(255,255,255,0.5);
+      transition: 0.2s;
+    }
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 1rem;
+      color: #2e2a4a;
+      padding: 0 4px 12px 4px;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+    }
+    .level-badge { background: rgba(255,255,255,0.4); padding: 6px 18px; border-radius: 60px; font-size: 0.95rem; backdrop-filter: blur(2px); }
+    .score-combo { display: flex; align-items: center; gap: 12px; }
+    .combo-fire { background: rgba(255,215,0,0.15); padding: 2px 14px; border-radius: 60px; color: #b45f06; }
+    .timer-section { display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.02); padding: 2px 12px 2px 8px; border-radius: 60px; }
+    .timer-bar-bg { width: 80px; height: 8px; background: rgba(0,0,0,0.06); border-radius: 20px; overflow: hidden; }
+    .timer-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #f9a8d4, #a78bfa); border-radius: 20px; transition: width 0.06s linear; }
+    .target-card {
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(2px);
+      border-radius: 60px;
+      padding: 18px 16px 14px;
+      margin: 4px 0 18px 0;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+    .target-label { font-size: 0.8rem; letter-spacing: 2px; color: #544f72; font-weight: 500; }
+    .target-word { font-size: 3.2rem; font-weight: 800; color: #1f1b3a; line-height: 1.2; text-shadow: 0 4px 12px rgba(120,80,200,0.08); }
+    .rule-hint { font-size: 0.95rem; color: #3f3a5e; margin-top: 2px; font-weight: 500; }
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin: 14px 0 18px 0;
+    }
+    .answer-card {
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(4px);
+      border-radius: 40px;
+      padding: 18px 6px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: #1f1b3a;
+      border: 1px solid rgba(255,255,255,0.7);
+      transition: 0.08s ease;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 70px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+    .answer-card:active { transform: scale(0.96); background: rgba(200,180,255,0.3); }
+    .answer-card.correct-glow { background: rgba(80, 210, 120, 0.25); border-color: #3ba86a; }
+    .answer-card.wrong-flash { background: rgba(255, 80, 80, 0.2); border-color: #c94a4a; }
+    .answer-card.disabled { pointer-events: none; opacity: 0.5; }
+    .status-area {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 4px 0 12px 0;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .question-progress { background: rgba(255,255,255,0.4); padding: 4px 18px; border-radius: 60px; font-weight: 500; font-size: 0.9rem; color: #2e2a4a; }
+    .powerup-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+    .powerup-btn {
+      background: rgba(255,255,255,0.4);
+      border: none;
+      border-radius: 40px;
+      padding: 6px 16px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      backdrop-filter: blur(4px);
+      cursor: pointer;
+      transition: 0.08s;
+      color: #2a2447;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    .powerup-btn:active { transform: scale(0.94); }
+    .powerup-btn:disabled { opacity: 0.25; pointer-events: none; }
+    .result-banner {
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(8px);
+      border-radius: 60px;
+      padding: 18px 20px;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin: 6px 0 10px;
+      border: 1px solid rgba(255,255,255,0.7);
+    }
+    .btn-primary {
+      background: rgba(255,255,255,0.6);
+      border: none;
+      border-radius: 60px;
+      padding: 14px 24px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      backdrop-filter: blur(4px);
+      cursor: pointer;
+      transition: 0.12s;
+      color: #1f1b3a;
+      width: 100%;
+      margin-top: 6px;
+      border: 1px solid rgba(255,255,255,0.4);
+    }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .hidden { display: none !important; }
+    @media (max-width: 550px) {
+      .glass { padding: 18px 14px 20px; border-radius: 36px; }
+      .target-word { font-size: 2.4rem; }
+      .answer-grid { gap: 10px; }
+      .answer-card { font-size: 0.9rem; padding: 14px 4px; min-height: 58px; border-radius: 30px; }
+    }
+    @media (max-width: 420px) {
+      .top-row { font-size: 0.8rem; }
+      .timer-bar-bg { width: 50px; }
+      .powerup-btn { font-size: 0.7rem; padding: 4px 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="glass" id="app">
+  <div class="top-row">
+    <span class="level-badge" id="levelDisplay">🏁 LEVEL 1</span>
+    <div class="score-combo">
+      <span id="scoreDisplay">⭐ 0</span>
+      <span class="combo-fire" id="comboDisplay">🔥 x1</span>
+    </div>
+    <div class="timer-section">
+      <span id="timerText">⏱️ 5.0s</span>
+      <div class="timer-bar-bg"><div class="timer-fill" id="timerFill"></div></div>
+    </div>
+  </div>
+
+  <div class="target-card">
+    <div class="target-label">🎯 TARGET WORD</div>
+    <div class="target-word" id="targetWord">SPOON</div>
+    <div class="rule-hint" id="ruleHint">Find the place</div>
+  </div>
+
+  <div class="answer-grid" id="answerGrid"></div>
+
+  <div class="status-area">
+    <span class="question-progress" id="questionProgress">Q1 / 3</span>
+    <div class="powerup-bar">
+      <button class="powerup-btn" id="puReveal" disabled>🔍 REVEAL</button>
+      <button class="powerup-btn" id="puExtra" disabled>⏰ +2s</button>
+      <button class="powerup-btn" id="puShuffle" disabled>🔀 SHUFFLE</button>
+    </div>
+  </div>
+
+  <div id="resultArea" class="result-banner hidden"></div>
+  <button class="btn-primary" id="actionBtn">▶ START LEVEL</button>
+</div>
+<script>
+  (function(){
+    "use strict";
+    // ---------- 50 LEVELS ----------
+    const LEVELS = {};
+
+    // helpers
+    function shuffleArr(a) { for (let i=a.length-1; i>0; i--) { const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+    function q(target, correct, distractors, time=5.0, rule="Find the match") {
+      return { target, correct, distractors, time, rule };
+    }
+
+    // build options shuffled
+    function buildOptions(correct, distractors) {
+      const opts = [correct, ...distractors];
+      shuffleArr(opts);
+      const idx = opts.indexOf(correct);
+      return { options: opts, correctIndex: idx };
+    }
+
+    // -------- define all 50 levels (each level has array of questions) --------
+    // Tier 1 (1-10)
+    LEVELS[1] = [ q('SPOON', 'KITCHEN', ['BEDROOM','GARAGE','LIBRARY'], 5.0, 'Find the place'),
+                  q('PILLOW', 'BEDROOM', ['KITCHEN','GARAGE','LIBRARY'], 5.0, 'Find the place'),
+                  q('TOOTHBRUSH', 'BATHROOM', ['KITCHEN','BEDROOM','GARAGE'], 4.8, 'Find the place') ];
+    LEVELS[2] = [ q('RED', 'ART ROOM', ['BEDROOM','GARAGE','LIBRARY'], 4.8, 'Find the place'),
+                  q('APPLE', 'FRUIT', ['VEGETABLE','GRAIN','PROTEIN'], 4.8, 'Find the category'),
+                  q('CAR', 'GARAGE', ['KITCHEN','BATHROOM','LIBRARY'], 4.5, 'Find the place') ];
+    LEVELS[3] = [ q('BOOK', 'LIBRARY', ['KITCHEN','BEDROOM','GARAGE'], 4.5, 'Find the place'),
+                  q('SOFA', 'LIVING ROOM', ['BEDROOM','KITCHEN','GARAGE'], 4.3, 'Find the place'),
+                  q('PENCIL', 'DESK', ['KITCHEN','BATHROOM','GARAGE'], 4.3, 'Find the place') ];
+    LEVELS[4] = [ q('FORK', 'KITCHEN', ['BEDROOM','GARAGE','LIBRARY'], 4.2, 'Find the place'),
+                  q('MOON', 'NIGHT', ['DAY','SUN','STAR'], 4.0, 'Find the time'),
+                  q('SUN', 'DAY', ['NIGHT','MOON','STAR'], 4.0, 'Find the time') ];
+    LEVELS[5] = [ q('BANANA', 'FRUIT', ['VEGETABLE','GRAIN','DAIRY'], 4.0, 'Find the category'),
+                  q('BROCOLI', 'VEGETABLE', ['FRUIT','GRAIN','PROTEIN'], 4.0, 'Find the category'),
+                  q('MILK', 'DAIRY', ['FRUIT','VEGETABLE','GRAIN'], 4.0, 'Find the category') ];
+    LEVELS[6] = [ q('HAMMER', 'WORKSHOP', ['BEDROOM','LIBRARY','KITCHEN','GARDEN','BATHROOM'], 3.5, 'Find the place'),
+                  q('PIANO', 'MUSIC ROOM', ['KITCHEN','BEDROOM','GARAGE','LIBRARY','WORKSHOP'], 3.5, 'Find the place'),
+                  q('CHAIR', 'LIVING ROOM', ['KITCHEN','BEDROOM','GARAGE','LIBRARY','WORKSHOP'], 3.5, 'Find the place') ];
+    LEVELS[7] = [ q('DOCTOR', 'HOSPITAL', ['SCHOOL','BANK','LIBRARY','MUSEUM','STORE','CLINIC'], 3.2, 'Find the place'),
+                  q('TEACHER', 'SCHOOL', ['HOSPITAL','BANK','LIBRARY','STORE','MUSEUM','COLLEGE'], 3.2, 'Find the place'),
+                  q('LIBRARIAN', 'LIBRARY', ['SCHOOL','HOSPITAL','BANK','STORE','MUSEUM','ARCHIVE'], 3.2, 'Find the place') ];
+    LEVELS[8] = [ q('HAPPY', 'JOYFUL', ['SAD','ANGRY','TIRED','BORED','EXCITED'], 3.0, 'Find synonym'),
+                  q('HOT', 'WARM', ['COLD','COOL','FREEZING','CHILLY','BOILING'], 3.0, 'Find synonym'),
+                  q('BIG', 'LARGE', ['SMALL','TINY','HUGE','MASSIVE','NARROW'], 3.0, 'Find synonym') ];
+    LEVELS[9] = [ q('RAIN', 'UMBRELLA', ['COAT','BOOTS','HAT','GLOVES','SCARF','PUDDLE'], 2.8, 'Find the object'),
+                  q('SNOW', 'COAT', ['UMBRELLA','BOOTS','HAT','GLOVES','SCARF','PUDDLE'], 2.8, 'Find the object'),
+                  q('WIND', 'SCARF', ['UMBRELLA','COAT','BOOTS','HAT','GLOVES','PUDDLE'], 2.8, 'Find the object') ];
+    LEVELS[10] = [ q('MERCURY', 'PLANET', ['ELEMENT','METAL','GAS','STAR','MOON','SATELLITE'], 2.5, 'Find category'),
+                   q('GOLD', 'METAL', ['PLANET','ELEMENT','GAS','STAR','MOON','SATELLITE'], 2.5, 'Find category'),
+                   q('OXYGEN', 'GAS', ['METAL','PLANET','ELEMENT','STAR','MOON','SATELLITE'], 2.5, 'Find category') ];
+
+    // Tier 2 (11-20)
+    LEVELS[11] = [ q('ANXIOUS', 'WORRIED', ['CALM','BORED','HAPPY','EXCITED','TIRED','STRESSED'], 2.5, 'Synonym'),
+                   q('BRAVE', 'COURAGEOUS', ['SCARED','WEAK','SHY','BOLD','STRONG','FEARLESS'], 2.5, 'Synonym'),
+                   q('COOK', 'KITCHEN', ['BATHROOM','GARAGE','LIBRARY','BEDROOM','STORE','OFFICE'], 2.5, 'Place') ];
+    LEVELS[12] = [ q('COLD', 'WINTER', ['SUMMER','AUTUMN','SPRING','RAIN','SNOW','FALL'], 2.3, 'Season'),
+                   q('HOT', 'SUMMER', ['WINTER','AUTUMN','SPRING','RAIN','SNOW','FALL'], 2.3, 'Season'),
+                   q('WET', 'RAIN', ['SNOW','SUN','WIND','CLOUD','FOG','STORM'], 2.3, 'Weather') ];
+    LEVELS[13] = [ q('GLASS', 'WINDOW', ['BOTTLE','MIRROR','CUP','LENS','SCREEN','DOOR'], 2.2, 'Object'),
+                   q('WOOD', 'TABLE', ['CHAIR','DOOR','FLOOR','PENCIL','PAPER','DESK'], 2.2, 'Object'),
+                   q('STEEL', 'BRIDGE', ['CAR','BUILDING','TOOL','MACHINE','RAIL','SKYSCRAPER'], 2.2, 'Object') ];
+    LEVELS[14] = [ q('COURAGE', 'BRAVERY', ['FEAR','WEAKNESS','STRENGTH','HONOR','VALOR','HEROISM'], 2.0, 'Synonym'),
+                   q('FREEDOM', 'LIBERTY', ['CAPTIVITY','RESTRAINT','JUSTICE','EQUALITY','PEACE','AUTONOMY'], 2.0, 'Synonym'),
+                   q('JUSTICE', 'FAIRNESS', ['LAW','ORDER','RIGHTS','EQUALITY','PEACE','JUDGMENT'], 2.0, 'Synonym') ];
+    LEVELS[15] = [ q('BEE', 'HONEY', ['FLOWER','STING','YELLOW','WAX','NEST','POLLEN'], 1.9, 'Produces'),
+                   q('SPIDER', 'WEB', ['INSECT','BITE','SILK','CRAWL','VENOM','TRAP'], 1.9, 'Produces'),
+                   q('COW', 'MILK', ['MEAT','LEATHER','GRASS','FARM','CHEESE','BUTTER'], 1.9, 'Produces') ];
+    LEVELS[16] = [ q('DOVE', 'PEACE', ['WAR','LOVE','HOPE','FREEDOM','PURITY','CALM'], 1.8, 'Symbolizes'),
+                   q('LION', 'COURAGE', ['STRENGTH','KING','JUNGLE','PRIDE','SAVANNA','BRAVERY'], 1.8, 'Symbolizes'),
+                   q('SNAKE', 'DECEIT', ['DANGER','POISON','WISDOM','FEAR','REPTILE','TRICKERY'], 1.8, 'Symbolizes') ];
+    LEVELS[17] = [ q('AMBIGUOUS', 'UNCLEAR', ['CLEAR','OBVIOUS','VAGUE','CONFUSING','DOUBTFUL','MURKY'], 1.7, 'Synonym'),
+                   q('PARADOX', 'CONTRADICTION', ['TRUTH','LIE','MYSTERY','PUZZLE','LOGIC','IRONY'], 1.7, 'Synonym'),
+                   q('INFER', 'DEDUCE', ['ASSUME','GUESS','KNOW','PROVE','SUPPOSE','CONCLUDE'], 1.7, 'Synonym') ];
+    LEVELS[18] = [ q('ALGORITHM', 'PROCEDURE', ['CODE','DATA','MACHINE','LOGIC','PROCESS','SYSTEM'], 1.6, 'Definition'),
+                   q('VARIABLE', 'CHANGEABLE', ['CONSTANT','FIXED','DATA','VALUE','SYMBOL','FLEXIBLE'], 1.6, 'Definition'),
+                   q('PROTOCOL', 'PROCEDURE', ['RULE','STANDARD','CODE','PROCESS','AGREEMENT','PROTOCOL'], 1.6, 'Definition') ];
+    LEVELS[19] = [ q('ENCRYPTION', 'SECURITY', ['CODE','PRIVACY','DATA','PROTECTION','CIPHER','SAFETY'], 1.5, 'Purpose'),
+                   q('LATENCY', 'DELAY', ['SPEED','RESPONSE','TIME','LAG','PERFORMANCE','WAIT'], 1.5, 'Definition'),
+                   q('DATABASE', 'STORAGE', ['DATA','TABLE','QUERY','SERVER','RECORD','ARCHIVE'], 1.5, 'Purpose') ];
+    LEVELS[20] = [ q('CONSEQUENCE', 'RESULT', ['CAUSE','EFFECT','REASON','OUTCOME','IMPACT','CONCLUSION'], 1.4, 'Synonym'),
+                   q('CONTRADICT', 'DENY', ['AGREE','CONFIRM','SUPPORT','OPPOSE','REFUTE','CHALLENGE'], 1.4, 'Synonym'),
+                   q('PARADOX', 'IRONY', ['MYSTERY','CONTRADICTION','TRUTH','LIE','PUZZLE','ABSURD'], 1.4, 'Synonym') ];
+
+    // Tier 3 (21-30)  more abstract
+    for (let i=21; i<=30; i++) {
+      const t = Math.max(1.0, 2.0 - (i-20)*0.08);
+      LEVELS[i] = [
+        q('ICE', 'COLD', ['WATER','FREEZE','SNOW','WINTER','SOLID','FROST','CHILL','COOL'], t, 'Property'),
+        q('DOVE', 'PEACE', ['WAR','LOVE','HOPE','FREEDOM','PURITY','OLIVE','WHITE','CALM'], t, 'Symbol'),
+        q('RAIN', 'UMBRELLA', ['WATER','CLOUD','STORM','WET','COAT','BOOTS','HOOD','PUDDLE'], t, 'Object')
+      ];
+    }
+
+    // Tier 4 (31-40) more options, moving distractions not simulated in DOM but we increase distractors and speed
+    for (let i=31; i<=40; i++) {
+      const t = Math.max(0.8, 1.6 - (i-30)*0.06);
+      const extra = ['CLOUD','STORM','WIND','FOG','SUN','MOON','STAR','RAIN','SNOW','HAIL','MIST','GUST'];
+      LEVELS[i] = [
+        q('ICE', 'COLD', ['WATER','FREEZE','SNOW','WINTER','SOLID','FROST','CHILL','COOL','FREEZING','CRYSTAL'], t, 'Property'),
+        q('DOVE', 'PEACE', ['WAR','LOVE','HOPE','FREEDOM','PURITY','OLIVE','WHITE','CALM','SERENE','QUIET'], t, 'Symbol'),
+        q('RAIN', 'UMBRELLA', ['WATER','CLOUD','STORM','WET','COAT','BOOTS','HOOD','GLOVES','SCARF','PUDDLE'], t, 'Object')
+      ];
+    }
+
+    // Tier 5 (41-50) extreme
+    for (let i=41; i<=50; i++) {
+      const t = Math.max(0.4, 1.2 - (i-40)*0.07);
+      LEVELS[i] = [
+        q('AMBIGUOUS', 'UNCLEAR', ['CLEAR','OBVIOUS','VAGUE','CONFUSING','DOUBTFUL','MURKY','HAZY','OBSCURE','DARK','MYSTERY'], t, 'Synonym'),
+        q('PARADOX', 'CONTRADICTION', ['TRUTH','LIE','MYSTERY','PUZZLE','LOGIC','IRONY','PARADOX','ENIGMA','CONFLICT','ABSURD'], t, 'Synonym'),
+        q('INFER', 'DEDUCE', ['ASSUME','GUESS','KNOW','PROVE','SUPPOSE','CONCLUDE','DERIVE','REASON','INFER','EXTRAPOLATE'], t, 'Synonym'),
+        q('ALGORITHM', 'PROCEDURE', ['CODE','DATA','MACHINE','LOGIC','PROCESS','SYSTEM','METHOD','PROTOCOL','SEQUENCE','RULE'], t, 'Definition')
+      ];
+    }
+    // Level 50 special: 20 questions
+    LEVELS[50] = [];
+    const w50 = ['RESILIENCE','EMPATHY','INTEGRITY','COMPASSION','HUMILITY','CURIOSITY','GRIT','OPTIMISM','GRATITUDE','MINDFULNESS','SERENDIPITY','TENACITY','AUTHENTICITY','VULNERABILITY','COURAGE','QUANTUM','NEURAL','SYNTAX','COGNITIVE','HEURISTIC'];
+    const c50 = ['STRENGTH','UNDERSTANDING','HONESTY','KINDNESS','MODESTY','INQUISITIVE','PERSISTENCE','HOPE','THANKFUL','AWARENESS','LUCK','PERSISTENCE','REALNESS','OPENNESS','BRAVERY','PHYSICS','NETWORK','LANGUAGE','THOUGHT','PROBLEM'];
+    const d50 = ['WEAKNESS','IGNORANCE','DECEIT','CRUELTY','PRIDE','INDIFFERENCE','GIVING UP','PESSIMISM','INGRATITUDE','DISTRACTION','MISFORTUNE','FRAGILITY','ARTIFICE','DEFENSIVENESS','FEAR','CLASSICAL','STATIC','SEMANTIC','REFLEX','ALGORITHM'];
+    for (let i=0; i<20; i++) {
+      const t = Math.max(0.4, 1.0 - i*0.03);
+      LEVELS[50].push(q(w50[i%w50.length], c50[i%c50.length], [d50[i%d50.length], 'CONFUSION','DOUBT','APATHY','EGO','STUBBORNNESS','ANALOG','DIGITAL','LOGIC','DATA','SYSTEM'], t, 'Association'));
+    }
+
+    // ---------- GAME STATE ----------
+    let state = {
+      currentLevel: 1,
+      qIndex: 0,
+      score: 0,
+      combo: 1,
+      correctCount: 0,
+      totalQ: 0,
+      questions: [],
+      isPlaying: false,
+      timerInterval: null,
+      timeRemaining: 5,
+      maxTime: 5,
+      answered: false,
+      levelPassed: false,
+      levelFailed: false,
+      unlockedLevel: 1,
+      powerups: { reveal: 1, extra: 1, shuffle: 1 },
+    };
+
+    // DOM
+    const $ = id => document.getElementById(id);
+    const levelDisplay = $('levelDisplay');
+    const scoreDisplay = $('scoreDisplay');
+    const comboDisplay = $('comboDisplay');
+    const timerText = $('timerText');
+    const timerFill = $('timerFill');
+    const targetWord = $('targetWord');
+    const ruleHint = $('ruleHint');
+    const answerGrid = $('answerGrid');
+    const questionProgress = $('questionProgress');
+    const resultArea = $('resultArea');
+    const actionBtn = $('actionBtn');
+    const puReveal = $('puReveal');
+    const puExtra = $('puExtra');
+    const puShuffle = $('puShuffle');
+
+    function saveProgress() {
+      try { localStorage.setItem('fwf_progress', JSON.stringify({ unlocked: state.unlockedLevel, score: state.score })); } catch(e) {}
+    }
+    function loadProgress() {
+      try {
+        const d = JSON.parse(localStorage.getItem('fwf_progress'));
+        if (d) { state.unlockedLevel = d.unlocked || 1; state.score = d.score || 0; }
+      } catch(e) {}
+    }
+    loadProgress();
+
+    function renderInfo() {
+      levelDisplay.textContent = `🏁 LEVEL ${state.currentLevel}`;
+      scoreDisplay.textContent = `⭐ ${state.score}`;
+      comboDisplay.textContent = `🔥 x${state.combo}`;
+    }
+
+    function renderTimer(rem, max) {
+      const pct = Math.max(0, (rem/max)*100);
+      timerFill.style.width = pct + '%';
+      timerText.textContent = `⏱️ ${rem.toFixed(1)}s`;
+    }
+
+    function renderQuestion(qData, idx, total) {
+      targetWord.textContent = qData.target;
+      ruleHint.textContent = qData.rule || 'Find the match';
+      const { options, correctIndex } = buildOptions(qData.correct, qData.distractors);
+      answerGrid.dataset.correctIndex = correctIndex;
+      answerGrid.innerHTML = '';
+      options.forEach((opt, i) => {
+        const card = document.createElement('div');
+        card.className = 'answer-card';
+        card.textContent = opt;
+        card.dataset.idx = i;
+        card.addEventListener('click', ()=> handleAnswer(i, qData));
+        answerGrid.appendChild(card);
+      });
+      questionProgress.textContent = `Q${idx+1} / ${total}`;
+      state.maxTime = qData.time || 5;
+      state.timeRemaining = state.maxTime;
+      renderTimer(state.timeRemaining, state.maxTime);
+    }
+
+    function setPlaying(active) {
+      state.isPlaying = active;
+      document.querySelectorAll('.answer-card').forEach(c => c.classList.toggle('disabled', !active));
+      if (!active) { clearInterval(state.timerInterval); state.timerInterval = null; }
+      actionBtn.disabled = active;
+    }
+
+    function startTimer() {
+      clearInterval(state.timerInterval);
+      state.timerInterval = setInterval(() => {
+        state.timeRemaining -= 0.05;
+        if (state.timeRemaining <= 0) {
+          state.timeRemaining = 0;
+          renderTimer(0, state.maxTime);
+          if (!state.answered && state.isPlaying) handleTimeout();
+          clearInterval(state.timerInterval);
+          state.timerInterval = null;
+        } else renderTimer(state.timeRemaining, state.maxTime);
+      }, 50);
+    }
+
+    function handleTimeout() {
+      if (state.answered) return;
+      state.answered = true;
+      setPlaying(false);
+      state.combo = 1;
+      comboDisplay.textContent = `🔥 x1`;
+      state.score = Math.max(0, state.score - 100);
+      scoreDisplay.textContent = `⭐ ${state.score}`;
+      document.querySelectorAll('.answer-card').forEach(c => c.classList.add('wrong-flash'));
+      setTimeout(() => {
+        document.querySelectorAll('.answer-card').forEach(c => c.classList.remove('wrong-flash'));
+        nextQuestion(false);
+      }, 600);
+    }
+
+    function handleAnswer(selectedIdx, qData) {
+      if (state.answered || !state.isPlaying) return;
+      state.answered = true;
+      setPlaying(false);
+      const correctIdx = parseInt(answerGrid.dataset.correctIndex);
+      const isCorrect = (selectedIdx === correctIdx);
+      const cards = document.querySelectorAll('.answer-card');
+      cards.forEach((c, i) => {
+        if (i === correctIdx) c.classList.add('correct-glow');
+        if (i === selectedIdx && !isCorrect) c.classList.add('wrong-flash');
+      });
+      if (isCorrect) {
+        const timeTaken = state.maxTime - state.timeRemaining;
+        let bonus = 100;
+        if (timeTaken < 1.0) bonus = 200;
+        else if (timeTaken < 2.0) bonus = 150;
+        else if (timeTaken < 3.0) bonus = 100;
+        else bonus = 50;
+        const mul = Math.min(state.combo, 10);
+        const add = Math.floor(bonus * (1 + (mul-1)*0.1));
+        state.score += add;
+        state.combo += 1;
+        state.correctCount += 1;
+        scoreDisplay.textContent = `⭐ ${state.score}`;
+        comboDisplay.textContent = `🔥 x${state.combo}`;
+      } else {
+        state.combo = 1;
+        state.score = Math.max(0, state.score - 50);
+        comboDisplay.textContent = `🔥 x1`;
+        scoreDisplay.textContent = `⭐ ${state.score}`;
+      }
+      setTimeout(() => {
+        cards.forEach(c => c.classList.remove('correct-glow','wrong-flash'));
+        nextQuestion(isCorrect);
+      }, 700);
+    }
+
+    function nextQuestion(correct) {
+      const nxt = state.qIndex + 1;
+      if (nxt < state.questions.length) {
+        state.qIndex = nxt;
+        state.answered = false;
+        renderQuestion(state.questions[nxt], nxt, state.questions.length);
+        if (!state.levelPassed && !state.levelFailed) { setPlaying(true); startTimer(); }
+      } else {
+        finishLevel();
+      }
+    }
+
+    function finishLevel() {
+      const total = state.questions.length;
+      const correct = state.correctCount;
+      // Pass condition: at least 2 correct AND at least 40% correct
+      const pass = (correct >= 2 && correct >= Math.ceil(total * 0.4));
+      
+      if (pass) {
+        state.levelPassed = true;
+        // Unlock next level
+        if (state.currentLevel >= state.unlockedLevel) {
+          state.unlockedLevel = Math.min(50, state.currentLevel + 1);
+        }
+        resultArea.className = 'result-banner';
+        resultArea.innerHTML = `🎉 LEVEL PASSED! (${correct}/${total}) ⭐⭐⭐`;
+        actionBtn.textContent = '▶ NEXT LEVEL';
+        actionBtn.disabled = false;
+        saveProgress();
+      } else {
+        state.levelFailed = true;
+        resultArea.className = 'result-banner';
+        resultArea.innerHTML = `❌ LEVEL FAILED (${correct}/${total}) — Retry`;
+        actionBtn.textContent = '🔄 RETRY LEVEL';
+        actionBtn.disabled = false;
+      }
+      resultArea.classList.remove('hidden');
+      setPlaying(false);
+    }
+
+    function startLevel(lvl) {
+      // Check if level is unlocked
+      if (lvl > state.unlockedLevel && lvl > 1) {
+        resultArea.className = 'result-banner';
+        resultArea.innerHTML = `🔒 Level ${lvl} is locked. Complete Level ${lvl-1} first!`;
+        resultArea.classList.remove('hidden');
+        actionBtn.textContent = '▶ GO BACK';
+        actionBtn.disabled = false;
+        return;
+      }
+      
+      if (lvl > 50) {
+        resultArea.className = 'result-banner';
+        resultArea.innerHTML = '🏆 MASTER OF ALL 50! 🏆';
+        actionBtn.textContent = '🎮 REPLAY';
+        actionBtn.disabled = false;
+        actionBtn.onclick = ()=> { 
+          state.unlockedLevel = 1;
+          state.score = 0;
+          saveProgress();
+          location.reload(); 
+        };
+        return;
+      }
+      
+      state.currentLevel = lvl;
+      state.qIndex = 0;
+      state.correctCount = 0;
+      state.combo = 1;
+      state.levelPassed = false;
+      state.levelFailed = false;
+      state.answered = false;
+      state.questions = LEVELS[lvl] || LEVELS[1];
+      state.totalQ = state.questions.length;
+      resultArea.classList.add('hidden');
+      renderInfo();
+      renderQuestion(state.questions[0], 0, state.questions.length);
+      setPlaying(true);
+      startTimer();
+      actionBtn.textContent = '⏳ IN PROGRESS...';
+      actionBtn.disabled = true;
+      puReveal.disabled = false;
+      puExtra.disabled = false;
+      puShuffle.disabled = false;
+    }
+
+    // powerups
+    function useReveal() {
+      if (state.powerups.reveal <= 0 || !state.isPlaying) return;
+      state.powerups.reveal--; puReveal.disabled = true;
+      const ci = parseInt(answerGrid.dataset.correctIndex);
+      document.querySelectorAll('.answer-card').forEach((c,i) => {
+        if (i===ci) c.style.boxShadow = '0 0 0 3px #fbbf24';
+        setTimeout(()=> c.style.boxShadow = '', 800);
+      });
+    }
+    function useExtra() {
+      if (state.powerups.extra <= 0 || !state.isPlaying) return;
+      state.powerups.extra--; puExtra.disabled = true;
+      state.timeRemaining = Math.min(state.maxTime, state.timeRemaining + 2.0);
+      renderTimer(state.timeRemaining, state.maxTime);
+    }
+    function useShuffle() {
+      if (state.powerups.shuffle <= 0 || !state.isPlaying) return;
+      state.powerups.shuffle--; puShuffle.disabled = true;
+      const grid = answerGrid;
+      const cards = Array.from(grid.children);
+      const indices = cards.map((_,i)=>i);
+      shuffleArr(indices);
+      const oldCorrect = parseInt(grid.dataset.correctIndex);
+      cards.forEach((c,i) => grid.appendChild(cards[indices[i]]));
+      const newIdx = indices.indexOf(oldCorrect);
+      grid.dataset.correctIndex = newIdx;
+    }
+
+    puReveal.addEventListener('click', useReveal);
+    puExtra.addEventListener('click', useExtra);
+    puShuffle.addEventListener('click', useShuffle);
+
+    actionBtn.addEventListener('click', function() {
+      const text = this.textContent;
+      
+      if (text.includes('NEXT LEVEL')) {
+        const nxt = state.currentLevel + 1;
+        if (nxt <= 50) {
+          startLevel(nxt);
+        } else {
+          resultArea.className = 'result-banner';
+          resultArea.innerHTML = '🏆 YOU DID IT! 🏆';
+          this.textContent = '🎮 REPLAY';
+          this.disabled = false;
+          this.onclick = ()=> { 
+            state.unlockedLevel = 1;
+            state.score = 0;
+            saveProgress();
+            location.reload(); 
+          };
+        }
+      } else if (text.includes('RETRY')) {
+        startLevel(state.currentLevel);
+      } else if (text.includes('START')) {
+        startLevel(state.currentLevel);
+      } else if (text.includes('GO BACK')) {
+        startLevel(state.unlockedLevel);
+      }
+    });
+
+    // init
+    startLevel(Math.min(50, state.unlockedLevel));
+  })();
+</script>
+</body>
+</html>
